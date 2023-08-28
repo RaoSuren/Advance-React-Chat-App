@@ -9,10 +9,8 @@ import Logo from "../../assets/Images/logo.ico";
 import useSettings from "../../hooks/useSettings";
 import { Nav_Buttons, Nav_Setting } from "../../data";
 
-import ProfileMenu from "./ProfileMenu";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { UpdateTab } from "../../redux/slices/app";
 
 const getPath = (index) => {
   switch (index) {
@@ -46,7 +44,6 @@ const SideBar = () => {
   const selectedTab = tab;
 
   const handleChangeTab = (index) => {
-    dispatch(UpdateTab({ tab: index }));
     navigate(getPath(index));
   };
 
@@ -96,12 +93,7 @@ const SideBar = () => {
                   }}
                   p={1}
                 >
-                  <IconButton
-                    onClick={() => {
-                      handleChangeTab(el.index);
-                    }}
-                    sx={{ width: "max-content", color: "#ffffff" }}
-                  >
+                  <IconButton sx={{ width: "max-content", color: "#ffffff" }}>
                     {el.icon}
                   </IconButton>
                 </Box>
@@ -168,7 +160,6 @@ const SideBar = () => {
             onChange={onToggleMode}
           />
           {/* Profile Menu */}
-          <ProfileMenu />
         </Stack>
       </Stack>
     </Box>
