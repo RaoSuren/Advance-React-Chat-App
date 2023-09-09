@@ -17,12 +17,7 @@ server.listen(port, () => {
 
 const DB = process.env.DBURI;
 mongoose
-  .connect(DB, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useUnifiedTopology: true,
-  })
+  .connect(DB)
   .then(() => {
     console.log("Connected to Database");
   })
