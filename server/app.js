@@ -1,4 +1,5 @@
 const express = require("express");
+const routes = require("./routes/index");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const mongoSanitize = require("express-mongo-sanitize");
@@ -36,5 +37,7 @@ app.use(
     extended: true,
   })
 );
+
+app.use(routes);
 
 module.exports = app;
