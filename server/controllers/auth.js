@@ -1,6 +1,9 @@
 const jwt = require("jsonwebtoken");
 const otpGenerator = require("otp-generator");
+const crypto = require("crypto");
+const mailService = require("../services/mailer");
 
+const {promisify} = require("util");
 const User = require("../models/User");
 const signedToken = (userId) => jwt.sign({userId, process.env.JWT_SECRET});
 
@@ -45,6 +48,12 @@ exports.sendOTP = async (req, res, next) => {
         otp_expiry_time: otp_expiry
     });
 
+    mailService.sendEmail({
+        from: "contact@codingmonk.in",
+        to: "example@gmail.com",
+        subjects: "OTP for tawk",
+        text: `Your OTP is ${new_otp} valid for 10 minutes.`,
+    })
     res.status(200).json({
         status: "success",
         message: "OTP Sent Sucessfully"
@@ -87,7 +96,7 @@ exports.verifyOTP = async (req, res, next) => {
     });
 };
 
-exports.login() = async (req, res, next) => {
+exports.login = async (req, res, next) => {
     const {email, password} = req.body;
 
     if(!email || !password) {
@@ -116,6 +125,110 @@ exports.login() = async (req, res, next) => {
      })
 }
 
+exports.protect = async (req, res, next) => {
+    let token;
+
+    if(req.headers.authorization && req.headers.authorization.startsWith("Bearer")){
+        token = req.headers.authorization.split(" ")[1];
+    }
+    else if(res.cookies.jwt){
+        token = req.cookies.jwt;
+    } else {
+        req.status(400).json({
+            status: "error",
+            message: "You are not looged in Please log in to get access",
+        })
+
+        return;
+    }
+
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+    const this_user = await User.findById(decoded.userId);
+
+    if(!this_user){
+        res.status(400).json({
+            status: "error",
+            message: "The user doesn't exists",
+        })
+    }
+
+    if(this_user.changedPasswordAfter(decodes.iat))
+    {
+        res.status(400).json({
+            status: "error",
+            message: "User recently updated password Please log in again"
+        })
+    }
+
+    req.user = this_user;
+    next();
+}
+
 exports.forgotPassword = async (req, res, next) => {
-    
+    const user - await User.findOne({email: req.body.email});
+    if(!user) {
+        res.status(400).json({
+            status: "error",
+            message: "No user found with this email"
+        })
+
+        return;
+    }
+
+    const resetToken = user.createPasswordResetToken();
+
+    const resetURL = `https://tawk.com/auth/reset-password/?code=${resetToken}`;
+
+    try {
+        res.status(200).json({
+            status: "sucess",
+            message: "Reset Password link sent sucessfully"
+        })
+    } catch(error) {
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+
+        await user.save({validateBeforeSave: false});
+
+        res.status(500).json({
+            status: "error",
+            message: "There was an error sending the mail, try after some time"
+        })
+    }
+}
+
+exports.resetPassword = (req, res, next) => {
+    const hashedToken = crypto.createHash("sha256").update(req.body.token).digest("hex");
+
+    const user = await User.find({
+        passwordResetToken: hashedToken,
+        passwordResetExpires: {$gt: Date.now()},
+    });
+
+    if(!user){
+        res.status(400).json({
+            status: "error",
+            message: "TOken is invalid, Expired",
+        })
+
+        return;
+    }
+
+    user.password = req.body.password;
+    user.passwordConfirmed = req.body.password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save();
+
+    const token = signTOken(user._id);
+
+    res.status(200).json({
+        status: "sucess",
+        message: "Password Reset Sucessfully",
+        token,
+    });
+
+
 }
