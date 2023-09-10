@@ -8,7 +8,7 @@ import { Stack, IconButton, InputAdornment, Button } from "@mui/material";
 // components
 import FormProvider, { RHFTextField } from "../../components/hook-form";
 import { Eye, EyeSlash } from "phosphor-react";
-import RHFCodes from "../../components/hook-form/RHFCodes";
+import RHFCodes from "../../components/hook-form/RHFCode";
 import { useDispatch, useSelector } from "react-redux";
 import { VerifyEmail } from "../../redux/slices/auth";
 
