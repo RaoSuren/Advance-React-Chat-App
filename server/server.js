@@ -14,8 +14,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "https//",
-    method: ["GET", "POST"]
-  }
+    method: ["GET", "POST"],
+  },
 });
 const port = process.env.PORT || 8000;
 server.listen(port, () => {
@@ -26,20 +26,32 @@ io.on("connection", async (socket) => {
   const user_id = socket.handshake.query("user_id");
 
   const socket_id = socket.id;
-  if(user_id) {
-    await User.findByIdAndUpdate(user_id, {socket_id,})
+  if (Boolean(user_id)) {
+    await User.findByIdAndUpdate(user_id, { socket_id });
   }
 
   socket.on("friend_request", async (data) => {
     console.log(data.to);
 
-    const to = await User.findById(data.to);
+    const to_user = await User.findById(data.to).select("socket_id");
+    const from_user = await User.findById(data.from).select("socket_id");
 
-    io.to(to.socket_id).emit("new_friend_request", {
+    await FriendRequest.create({
+      sender: data.from,
+      recipient: data.to,
+    });
 
-    });s
-  })
-})
+    io.to(to_user.socket_id).emit("new_friend_request", {
+      message: "New Friend Request Received",
+    });
+
+    io.to(from_user.socket_id).emit("request_sent", {
+      message: "Request Sent Sucessfully",
+    });
+  });
+
+  socket.on("accept_request", )
+});
 const DB = process.env.DBURI;
 mongoose
   .connect(DB)

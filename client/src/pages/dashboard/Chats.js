@@ -37,9 +37,7 @@ const Chats = () => {
 
   const dispatch = useDispatch();
 
-  const { conversations } = useSelector(
-    (state) => state.conversation.direct_chat
-  );
+  const {conversations} = useSelector((state) => state.conversation.direct_chat);
 
   useEffect(() => {
     socket.emit("get_direct_conversations", { user_id }, (data) => {
@@ -49,6 +47,15 @@ const Chats = () => {
       dispatch(FetchDirectConversations({ conversations: data }));
     });
   }, []);
+
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
 
   return (
     <>
@@ -79,7 +86,12 @@ const Chats = () => {
             <Typography variant="h5">Chats</Typography>
 
             <Stack direction={"row"} alignItems="center" spacing={1}>
-              <IconButton sx={{ width: "max-content" }}>
+              <IconButton
+                onClick={() => {
+                  handleOpenDialog();
+                }}
+                sx={{ width: "max-content" }}
+              >
                 <Users />
               </IconButton>
               <IconButton sx={{ width: "max-content" }}>
@@ -119,16 +131,17 @@ const Chats = () => {
                   All Chats
                 </Typography>
                 {/* Chat List */}
-                {conversations
-                  .filter((el) => !el.pinned)
-                  .map((el, idx) => {
-                    return <ChatElement {...el} />;
-                  })}
+                {conversations.filter((el) => !el.pinned).map((el, idx) => {
+                  return <ChatElement {...el} />;
+                })}
               </Stack>
             </SimpleBarStyle>
           </Stack>
         </Stack>
       </Box>
+      {openDialog && (
+        <Friends open={openDialog} handleClose={handleCloseDialog} />
+      )}
     </>
   );
 };
