@@ -49,11 +49,13 @@ exports.sendOTP = async (req, res, next) => {
     });
 
     mailService.sendEmail({
-        from: "contact@codingmonk.in",
-        to: "example@gmail.com",
-        subjects: "OTP for tawk",
-        text: `Your OTP is ${new_otp} valid for 10 minutes.`,
-    })
+        from: "shreyanshshah242@gmail.com",
+        to: user.email,
+        subject: "Verification OTP",
+        html: otp(user.firstName, new_otp),
+        attachments: [],
+      });
+      
     res.status(200).json({
         status: "success",
         message: "OTP Sent Sucessfully"
@@ -87,7 +89,7 @@ exports.verifyOTP = async (req, res, next) => {
 
     await user.save({new: true, validateModifiedOnly: true});
 
-    cosnt token = signToken(user._id);
+    const token = signToken(user._id);
 
     res.status(200).json({
         status: "sucess",
