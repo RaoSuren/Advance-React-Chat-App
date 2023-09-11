@@ -50,7 +50,32 @@ io.on("connection", async (socket) => {
     });
   });
 
-  socket.on("accept_request", )
+  socket.on("accept_request", async (data) => {
+    const request_doc = await FriendRequest.findById(data.request_id);
+
+    const sender = await User.findById(request_doc.sender);
+    const receiver = await User.findById(request_doc.recipient);
+
+    sender.friends.push(request_doc.recipient);
+    receiver.friends.push(request_doc.sender);
+
+    await receiver.save({new: true, validateModifiedOnly: true});
+    await sender.save({new: true, validateModifiedOnly: true});
+
+    await FriendRequest.findByIdAndDelete(data.request_id);
+
+    io.to(sender.socket_id).emit("request_accepted", {
+      message: "Friend Request accepted",
+    });
+    io.to(receiver.socket_id).emit("request_accepted", {
+      message: "Friend Request accepted",
+    });
+  });
+
+  socket.on("end", function() {
+    console.log("Closing Connection.");
+    socket.disconnect(0);
+  })
 });
 const DB = process.env.DBURI;
 mongoose
