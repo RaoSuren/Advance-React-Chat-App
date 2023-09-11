@@ -94,7 +94,8 @@ exports.verifyOTP = async (req, res, next) => {
     res.status(200).json({
         status: "sucess",
         message: "User verified sucessfully",
-        token
+        token,
+        user_id: user._id,
     });
 };
 
@@ -123,7 +124,8 @@ exports.login = async (req, res, next) => {
      res.staus(200).json({
         status: "sucess",
         message: "Looged in sucessfully",
-        token
+        token,
+        user_id: userDoc._id,
      })
 }
 
